@@ -170,13 +170,14 @@
 					pageSize: 20
 				},
 				success: function(info) {
-					console.log(info);
+					
 					if(info) {
 						var data = {
 							list: info.data
 						};
+						console.log(info.data);
 						console.log(data);
-						var html = template("tpl", data);
+						var html = template("tpl",data);
 						$('.cz_live div').html(html);
 					}
 
