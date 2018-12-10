@@ -133,9 +133,9 @@
 
 		<script type="text/template" id="tpl">
 			{{each list value}}
-			<a href="#" class="cz_product">
+			<a href="product.html?id={{value.id}}" class="cz_product">
 				<div class="box">
-					<img src="{{value.pic[0].picAddr}}" alt="" />
+					<img src="/api{{value.pic[0].picAddr}}" alt="" />
 					<p class="name">{{value.proName}} </p>
 					<p><span class="price">&yen;{{value.price}}</span><span class="oldPrice">&yen;{{value.oldPrice}}</span></p>
 					<button class="button">立即购买</button>
