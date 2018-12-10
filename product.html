@@ -13,6 +13,11 @@
 		<link rel="stylesheet" href="res/fontAwesome/css/font-awesome.min.css" />
 		<link rel="stylesheet" href="css/common.css" />
 		<link rel="stylesheet" href="css/product.css" />
+		<style>
+			.active {
+				background-color: lightseagreen;
+			}
+		</style>
 	</head>
 
 	<body>
@@ -27,7 +32,7 @@
 					<div class="mui-scroll" id="content">
 						<script type="text/template" id="tpl">
 							<div class="cz_banner mui-slider">
-								<div class="mui-slider-group mui-slider-loop">	
+								<div class="mui-slider-group mui-slider-loop">
 									<div class="mui-slider-item mui-slider-item-duplicate">
 										<a href="#"><img src="/api{{pic[0].picAddr}}"></a>
 									</div>
@@ -50,14 +55,15 @@
 								<del class="original">¥{{oldPrice}}</del>
 							</div>
 							<div class="p_size">
-								尺码：
-								{{each size value}}
-								<span class="btn_size">{{value}}</span>
-								{{/each}}
+								尺码： {{each size value}}
+								<span class="btn_size">{{value}}</span> {{/each}}
 							</div>
 							<div class="p_number">
 								数量：
-								<span class="jian">-</span><input type="tel" value="1"/><span class="jia">+</span> 剩余：{{num}} 件
+								<span class="jian btn-num">-</span>
+								<input type="tel" value="1" />
+								<span class="jia btn-num">+</span> 
+								剩余：<span class="last">{{num}}</span>件
 							</div>
 							<div class="p_detail">
 								<img data-lazyload="images/detail.jpg" alt="" />
@@ -73,9 +79,9 @@
 			</div>
 		</div>
 		<div class="p_option">
-			<a href="#" class="btn_cart fa fa-shopping-cart"></a>
-			<a href="#" class="btn_addCart">加入购物车</a>
-			<a href="#" class="btn_pay">立即购买</a>
+			<a href="cart.html" class="btn_cart fa fa-shopping-cart"></a>
+			<a href="javascript:;" class="btn_addCart">加入购物车</a>
+			<a href="javascript:;" class="btn_pay">立即购买</a>
 		</div>
 		<script src="/mobile/assets/jQuery/jquery.min.js"></script>
 		<script src="/mobile/res/mui/js/mui.min.js"></script>
@@ -103,6 +109,7 @@
 				var tmp = search[i].split("=");
 				qs[tmp[0]] = tmp[1];
 			}
+			var tolnum;
 			//发送ajax请求，获取商品详情
 			$.ajax({
 				type: "get",
@@ -112,13 +119,64 @@
 				},
 				success: function(info) {
 					console.log(info);
-					//一些数据的处理
-					info.size = info.size.split("-");
-					//折扣的处理
-					info.discout = (info.price/info.oldPrice * 10).toFixed(2)
-					var html = template("tpl", info);
-					$('#content').html(html);
+					if(info) {
+						//一些数据的处理
+						info.size = info.size.split("-");
+						//折扣的处理
+						info.discout = (info.price / info.oldPrice * 10).toFixed(2);
+						tolnum = info.num;
+						var html = template("tpl", info);
+						$('#content').html(html);
+					}
 				}
+
+			});
+
+			//购买尺寸
+			var size;
+			$('#content').on("click", '.btn_size', function() {
+				$(this).addClass('active').siblings().removeClass('active');
+				size = $(this).text();
+			});
+
+			//购买数量的添加
+			$('#content').on('click', '.btn-num', function() {
+				var n = $(this).siblings('input').val();
+				var tmp = $(this).siblings('.last').text();
+				if($(this).is('.jia')) {
+					if(n >= tolnum) return; 
+					$(this).siblings('input').val(++n);
+					$(this).siblings('.last').text(--tmp);
+				} else {
+					if(n > 1) return $(this).siblings('input').val(--n);
+				}
+			});
+
+			//添加购物车功能
+			$(".btn_addCart").on('click', function() {
+				//获取添加购物车数据
+				//购买数量
+				var num = $('#content .p_number input').val();
+				//发送ajax请求
+				$.ajax({
+					type: "post",
+					url: "/api/cart/addCart",
+					data: {
+						productId: qs.id,
+						num: num,
+						size: size
+					},
+					success: function(info) {
+						if(info.error) {
+							mui.alert("请先登陆!", "提示", "确定", function() {
+								location.href = "/mobile/user/login.html?url="+location.href;
+							});
+							return;
+						}
+						mui.toast("添加成功!");
+					},
+					async: true
+				});
 			});
 		</script>
 
